@@ -49,7 +49,7 @@ encode_gaps(Integers) when is_list(Integers) ->
                                            1 -> 
                                                { Gaps, TailVal + 1, Int };
                                            _ ->
-                                               { Gaps ++ [TailVal, Diff - 1], 1, Int}
+                                               {  [TailVal, Diff - 1] ++ Gaps, 1, Int}
                                        end
                                end,
                                { [], 0, -1 },
