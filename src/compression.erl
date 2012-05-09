@@ -49,13 +49,13 @@ encode_gaps(Integers) when is_list(Integers) ->
                                            1 -> 
                                                { Gaps, TailVal + 1, Int };
                                            _ ->
-                                               {  [TailVal, Diff - 1] ++ Gaps, 1, Int}
+                                               {  [Gaps, [TailVal, Diff - 1]], 1, Int}
                                        end
                                end,
                                { [], 0, -1 },
                                Integers
                               ),
-    Gaps ++ [TailVal].
+    lists:flatten([Gaps,[TailVal]]).
 
 %% @doc D-GAP decoding 
 -spec decode_gaps(positive_integer_list()) -> positive_integer_vector().
@@ -69,7 +69,7 @@ decode_gaps(Integers) when is_list(Integers) ->
                   0 -> { true, [], 0 };
                   _ -> case Gap of
                              false -> 
-                                 { true, Results ++ lists:seq(LastResult, NewLastResult - 1), NewLastResult };
+                                 { true, [Results, lists:seq(LastResult, NewLastResult - 1)], NewLastResult };
                              true ->
                                  { false, Results, NewLastResult }
                          end
@@ -78,7 +78,7 @@ decode_gaps(Integers) when is_list(Integers) ->
       { false, [], 0 },
       Integers
      ),
-    Results.
+    lists:flatten(Results).
 
 %% @doc Elias Gamma encoding, supporting zero
 -spec encode_gamma(positive_integer_vector() | positive_integer() ) -> bitstring().
