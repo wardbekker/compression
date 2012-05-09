@@ -7,3 +7,5 @@ ebin
 logs
 .#*
 .eunit
+*.trace
+*.dump
