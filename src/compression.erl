@@ -83,7 +83,7 @@ decode_gaps(Integers) when is_list(Integers) ->
 %% @doc Elias Gamma encoding, supporting zero
 -spec encode_gamma(positive_integer_vector() | positive_integer() ) -> bitstring().
 encode_gamma(Integers) when is_list(Integers) ->
-    list_to_bitstring(lists:map(fun encode_gamma/1, Integers));
+    list_to_bitstring([encode_gamma(I) || I <- Integers]);
 encode_gamma(Integer) when is_integer(Integer) ->
     BitSize = length(integer_to_list(Integer + 1,2)),
     <<0:(BitSize - 1), (Integer+1):BitSize>>.
