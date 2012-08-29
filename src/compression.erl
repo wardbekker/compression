@@ -7,14 +7,19 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(compression).
--include_lib("proper/include/proper.hrl").
--include_lib("eunit/include/eunit.hrl").
 
 %% API
 -export(
    [encode/1, decode/1, encode_gamma/1,
     decode_gamma/1, encode_gaps/1, decode_gaps/1]
   ).
+
+-ifdef(TEST).
+
+-include_lib("proper/include/proper.hrl").
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 
 %% TYPES
 -type positive_integer_vector() :: [positive_integer()].
@@ -43,18 +48,18 @@ decode(Stream) when is_bitstring(Stream) ->
 -spec encode_gaps(positive_integer_vector()) -> positive_integer_list().
 encode_gaps(Integers) when is_list(Integers) ->
     { Gaps, TailVal, _Int } = lists:foldl(
-                               fun (Int, { Gaps, TailVal, LastInt }) ->
-                                       Diff = Int - LastInt,
-                                       case Diff of
-                                           1 -> 
-                                               { Gaps, TailVal + 1, Int };
-                                           _ ->
-                                               {  [Gaps, [TailVal, Diff - 1]], 1, Int}
-                                       end
-                               end,
-                               { [], 0, -1 },
-                               Integers
-                              ),
+                                fun (Int, { Gaps, TailVal, LastInt }) ->
+                                        Diff = Int - LastInt,
+                                        case Diff of
+                                            1 -> 
+                                                { Gaps, TailVal + 1, Int };
+                                            _ ->
+                                                {  [Gaps, [TailVal, Diff - 1]], 1, Int}
+                                        end
+                                end,
+                                { [], 0, -1 },
+                                Integers
+                               ),
     lists:flatten([Gaps,[TailVal]]).
 
 %% @doc D-GAP decoding 
@@ -63,21 +68,21 @@ decode_gaps([]) ->
     [];
 decode_gaps(Integers) when is_list(Integers) ->
     { _, Results, _ } = lists:foldl(
-      fun(I, { Gap, Results, LastResult}) ->
-              NewLastResult = LastResult + I,
-              case I of
-                  0 -> { true, [], 0 };
-                  _ -> case Gap of
-                             false -> 
-                                 { true, [Results, lists:seq(LastResult, NewLastResult - 1)], NewLastResult };
-                             true ->
-                                 { false, Results, NewLastResult }
-                         end
-              end
-      end,
-      { false, [], 0 },
-      Integers
-     ),
+                          fun(I, { Gap, Results, LastResult}) ->
+                                  NewLastResult = LastResult + I,
+                                  case I of
+                                      0 -> { true, [], 0 };
+                                      _ -> case Gap of
+                                               false -> 
+                                                   { true, [Results, lists:seq(LastResult, NewLastResult - 1)], NewLastResult };
+                                               true ->
+                                                   { false, Results, NewLastResult }
+                                           end
+                                  end
+                          end,
+                          { false, [], 0 },
+                          Integers
+                         ),
     lists:flatten(Results).
 
 %% @doc Elias Gamma encoding, supporting zero
@@ -116,10 +121,10 @@ take_zeroes(Stream) ->
 %%% PropEr quickcheck tests
 %%%===================================================================
 
-proper_test_() ->
-    [{atom_to_list(F),
-      fun () -> ?assert(proper:quickcheck(?MODULE:F(), [long_result])) end}
-     || {F, 0} <- ?MODULE:module_info(exports), F > 'prop_', F < 'prop`'].
+proper_test() ->
+    ?assertEqual(
+       [],
+       proper:module(?MODULE, [long_result])).
 
 prop_gamma_encoding() ->
     ?FORALL(T, vector(pos_integer()), T =:= decode_gamma(encode_gamma(T))).
@@ -131,7 +136,7 @@ prop_combined_encoding() ->
     ?FORALL(T, vector(pos_integer()), T =:= decode(encode(T))).
 
 vector(Type) ->
-     ?LET(UN, list(Type), lists:usort(UN)).
+    ?LET(UN, list(Type), lists:usort(UN)).
 
 -endif.
 
