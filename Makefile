@@ -9,5 +9,5 @@ build-plt:
 
 dialyze: compile
 	dialyzer --plt compression_dialyzer.plt \
-	-c ebin
+	-c ebin \
 	-pa deps/proper/ebin
